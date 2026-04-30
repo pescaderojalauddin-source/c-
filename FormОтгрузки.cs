@@ -85,13 +85,15 @@ namespace AccountingApp
 
         private void btnДобавить_Click(object sender, EventArgs e)
         {
-            DataTable счета = LoadTable("SELECT id, \"Номер\" FROM \"Счета\" ORDER BY \"Номер\"");
+            DataTable счета = LoadTable(
+                "SELECT id, ('Продажа #' || id || ' от ' || to_char(data, 'DD.MM.YYYY')) AS \"Номер\" " +
+                "FROM \"prodaja\" ORDER BY data DESC, id DESC");
             DataTable товары = LoadTable("SELECT id, \"Название\" FROM \"Товары\" ORDER BY \"Название\"");
             DataTable склады = LoadTable("SELECT id, \"Название\" FROM \"Склады\" ORDER BY \"Название\"");
 
             if (счета.Rows.Count == 0)
             {
-                MessageBox.Show("Сначала создайте хотя бы один Счёт!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Сначала создайте хотя бы одну продажу!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -112,7 +114,7 @@ namespace AccountingApp
             Button btnCancel = new Button { Text = "Отмена", DialogResult = DialogResult.Cancel, Location = new System.Drawing.Point(200, 180) };
 
             dlg.Controls.AddRange(new Control[] {
-                new Label { Text = "Счёт:", Location = new System.Drawing.Point(10, 0) }, cbСчет,
+                new Label { Text = "Продажа:", Location = new System.Drawing.Point(10, 0) }, cbСчет,
                 new Label { Text = "Товар:", Location = new System.Drawing.Point(10, 40) }, cbТовар,
                 new Label { Text = "Склад:", Location = new System.Drawing.Point(10, 80) }, cbСклад,
                 new Label { Text = "Кол-во:", Location = new System.Drawing.Point(10, 120) }, numQty,

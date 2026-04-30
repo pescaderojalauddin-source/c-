@@ -158,18 +158,18 @@ namespace AccountingApp
             {
                 conn.Open();
                 string sql = @"
-                    SELECT с.id,
-                           с.""Номер"",
-                           с.""Дата"",
-                           к.""Название""                                          AS ""Клиент"",
-                           с.""Сумма""                                              AS ""СуммаСчета"",
-                           COALESCE((SELECT SUM(""Сумма"") FROM ""Оплаты"" о
-                                     WHERE о.""СчетId"" = с.id AND о.""Дата"" <= @date), 0) AS ""Оплачено""
-                    FROM ""Счета"" с
-                    JOIN ""Клиенты"" к ON с.""КлиентId"" = к.id
-                    WHERE с.""КлиентId"" = ANY(@ids)
-                      AND с.""Дата"" + INTERVAL '20 days' < @date
-                    ORDER BY с.""Дата""";
+                    SELECT p.id,
+                           p.id::text                                                AS ""Номер"",
+                           p.data                                                    AS ""Дата"",
+                           k.""Название""                                            AS ""Клиент"",
+                           p.totalsum                                                AS ""СуммаСчета"",
+                           COALESCE((SELECT SUM(o.sum) FROM ""oplata"" o
+                                     WHERE o.idprodaji = p.id AND o.data <= @date), 0) AS ""Оплачено""
+                    FROM ""prodaja"" p
+                    JOIN ""Клиенты"" k ON p.idclient = k.id
+                    WHERE p.idclient = ANY(@ids)
+                      AND p.data + INTERVAL '20 days' < @date
+                    ORDER BY p.data";
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@ids",  клиентыIds.ToArray());
@@ -188,7 +188,7 @@ namespace AccountingApp
                             int дней = (int)(наДату - датаСчета).TotalDays - 20;
 
                             dt.Rows.Add(
-                                rd.GetValue(1).ToString(),
+                                "#" + rd.GetValue(1).ToString(),
                                 датаСчета,
                                 rd.GetString(3),
                                 сумма,

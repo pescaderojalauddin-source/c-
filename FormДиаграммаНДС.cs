@@ -98,14 +98,14 @@ namespace AccountingApp
             {
                 conn.Open();
                 string sql = @"
-                    SELECT т.""СтавкаНДС"" AS ""Ставка"",
-                           SUM(п.""Сумма"") AS ""Сумма""
-                    FROM ""ПозицииСчета"" п
-                    JOIN ""Товары"" т ON п.""ТоварId"" = т.id
-                    JOIN ""Счета""  с ON п.""СчетId""  = с.id
-                    WHERE с.""Дата"" BETWEEN @от AND @до
-                    GROUP BY т.""СтавкаНДС""
-                    ORDER BY т.""СтавкаНДС""";
+                    SELECT t.""СтавкаНДС""               AS ""Ставка"",
+                           SUM(pi.quantity * pi.price)   AS ""Сумма""
+                    FROM ""prodaja_info"" pi
+                    JOIN ""Товары""  t ON pi.idproduct = t.id
+                    JOIN ""prodaja"" p ON pi.idprodaji = p.id
+                    WHERE p.data BETWEEN @от AND @до
+                    GROUP BY t.""СтавкаНДС""
+                    ORDER BY t.""СтавкаНДС""";
 
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 {

@@ -37,7 +37,7 @@ namespace AccountingApp
             { Name = "Id", HeaderText = "ID", DataPropertyName = "Id", Width = 40, Visible = false });
 
             dgvОплаты.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "Счет", HeaderText = "Счёт №", DataPropertyName = "НомерСчета", Width = 100 });
+            { Name = "Счет", HeaderText = "Продажа", DataPropertyName = "НомерСчета", Width = 200 });
 
             dgvОплаты.Columns.Add(new DataGridViewTextBoxColumn
             { Name = "Клиент", HeaderText = "Клиент", DataPropertyName = "Клиент", Width = 250 });
@@ -111,16 +111,17 @@ namespace AccountingApp
         private void btnДобавить_Click(object sender, EventArgs e)
         {
             DataTable счета = LoadTable(@"
-                SELECT с.id,
-                       с.""Номер"" || ' (' || COALESCE(к.""Название"", 'без клиента') || ', ' ||
-                       to_char(с.""Сумма"", 'FM999999990.00') || ' ₽)' AS ""Описание""
-                FROM ""Счета"" с
-                LEFT JOIN ""Клиенты"" к ON с.""КлиентId"" = к.id
-                ORDER BY с.""Дата"" DESC, с.""Номер""");
+                SELECT p.id,
+                       ('Продажа #' || p.id || ' от ' || to_char(p.data, 'DD.MM.YYYY') ||
+                        ' (' || COALESCE(k.""Название"", 'без клиента') || ', ' ||
+                        to_char(p.totalsum, 'FM999999990.00') || ' ₽)') AS ""Описание""
+                FROM ""prodaja"" p
+                LEFT JOIN ""Клиенты"" k ON p.idclient = k.id
+                ORDER BY p.data DESC, p.id DESC");
 
             if (счета.Rows.Count == 0)
             {
-                MessageBox.Show("Сначала создайте хотя бы один счёт!", "Внимание",
+                MessageBox.Show("Сначала создайте хотя бы одну продажу!", "Внимание",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -137,7 +138,7 @@ namespace AccountingApp
             };
 
             var lblСчет = new Label
-            { Text = "Счёт:", Location = new System.Drawing.Point(15, 15), Width = 100 };
+            { Text = "Продажа:", Location = new System.Drawing.Point(15, 15), Width = 100 };
             var cbСчет = new ComboBox
             {
                 Location = new System.Drawing.Point(15, 35),
@@ -199,7 +200,7 @@ namespace AccountingApp
             {
                 if (cbСчет.SelectedValue == null)
                 {
-                    MessageBox.Show("Выберите счёт!", "Ошибка",
+                    MessageBox.Show("Выберите продажу!", "Ошибка",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }

@@ -311,5 +311,10 @@ namespace AccountingApp
         {
             new FormОтчёты().ShowDialog();
         }
+
+        private void btnОплатыКлиента_Click(object sender, EventArgs e)
+        {
+            new FormОплатыКлиента().ShowDialog();
+        }
     }
 }

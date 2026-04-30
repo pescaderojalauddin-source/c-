@@ -5,6 +5,11 @@ using Npgsql;
 
 namespace AccountingApp.Repositories
 {
+    /// <summary>
+    /// Доступ к таблице oplata. Триггер БД tg_oplata_recalc сам
+    /// пересчитывает prodaja.oplacheno при INSERT/UPDATE/DELETE.
+    /// Статус оплаты вычисляется на лету.
+    /// </summary>
     public class ОплатыRepository
     {
         public List<Оплата> GetAll()
@@ -14,17 +19,22 @@ namespace AccountingApp.Repositories
             {
                 conn.Open();
                 string sql = @"
-                    SELECT о.id,
-                           о.""СчетId"",
-                           с.""Номер"" AS ""НомерСчета"",
-                           к.""Название"" AS ""Клиент"",
-                           о.""Сумма"",
-                           о.""Дата"",
-                           о.""Статус""
-                    FROM ""Оплаты"" о
-                    LEFT JOIN ""Счета""    с ON о.""СчетId""  = с.id
-                    LEFT JOIN ""Клиенты""  к ON с.""КлиентId"" = к.id
-                    ORDER BY о.""Дата"" DESC, о.id DESC";
+                    SELECT o.id,
+                           o.idprodaji,
+                           ('Продажа #' || p.id || ' от ' || to_char(p.data, 'DD.MM.YYYY')) AS ""НомерСчета"",
+                           COALESCE(k.""Название"", '')                                     AS ""Клиент"",
+                           o.sum,
+                           o.data,
+                           CASE
+                               WHEN p.oplacheno >= p.totalsum THEN 'Оплачено'
+                               WHEN (CURRENT_DATE - p.data) > 20 THEN 'Просрочено'
+                               WHEN p.oplacheno > 0 THEN 'Частично'
+                               ELSE 'Не оплачено'
+                           END AS ""Статус""
+                    FROM ""oplata"" o
+                    LEFT JOIN ""prodaja"" p ON o.idprodaji = p.id
+                    LEFT JOIN ""Клиенты"" k ON p.idclient = k.id
+                    ORDER BY o.data DESC, o.id DESC";
 
                 using (var cmd = new NpgsqlCommand(sql, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -35,7 +45,7 @@ namespace AccountingApp.Repositories
                         {
                             Id          = reader.GetInt32(0),
                             СчетId      = reader.GetInt32(1),
-                            НомерСчета  = reader.IsDBNull(2) ? "" : reader.GetValue(2).ToString(),
+                            НомерСчета  = reader.IsDBNull(2) ? "" : reader.GetString(2),
                             Клиент      = reader.IsDBNull(3) ? "" : reader.GetString(3),
                             Сумма       = reader.GetDecimal(4),
                             Дата        = reader.GetDateTime(5),
@@ -47,44 +57,52 @@ namespace AccountingApp.Repositories
             return list;
         }
 
-        public void Add(int счетId, decimal сумма, DateTime дата)
+        public List<Оплата> GetByProdaja(int idProdaji)
+        {
+            var list = new List<Оплата>();
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT o.id, o.idprodaji, o.sum, o.data
+                    FROM ""oplata"" o
+                    WHERE o.idprodaji = @id
+                    ORDER BY o.data, o.id";
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", idProdaji);
+                    using (var rd = cmd.ExecuteReader())
+                    {
+                        while (rd.Read())
+                        {
+                            list.Add(new Оплата
+                            {
+                                Id      = rd.GetInt32(0),
+                                СчетId  = rd.GetInt32(1),
+                                Сумма   = rd.GetDecimal(2),
+                                Дата    = rd.GetDateTime(3)
+                            });
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        public void Add(int idProdaji, decimal сумма, DateTime дата)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
-
-                // 1) Получаем данные счёта
-                decimal суммаСчета;
-                DateTime датаСчета;
-                ПолучитьСчет(conn, счетId, out суммаСчета, out датаСчета);
-
-                // 2) Сумма уже оплаченного по этому счёту
-                decimal ужеОплачено = ПолучитьСуммуОплат(conn, счетId);
-
-                // 3) Статус новой оплаты
-                decimal итого = ужеОплачено + сумма;
-                string статус;
-                if (итого >= суммаСчета)
-                    статус = "Оплачено";
-                else if ((дата - датаСчета).TotalDays > 20)
-                    статус = "Просрочено";
-                else
-                    статус = "Частично";
-
-                // 4) Вставка
                 using (var cmd = new NpgsqlCommand(
-                    @"INSERT INTO ""Оплаты"" (""СчетId"", ""Сумма"", ""Дата"", ""Статус"")
-                      VALUES (@s, @sum, @d, @st)", conn))
+                    @"INSERT INTO ""oplata"" (idprodaji, sum, data) VALUES (@p, @s, @d)", conn))
                 {
-                    cmd.Parameters.AddWithValue("@s",   счетId);
-                    cmd.Parameters.AddWithValue("@sum", сумма);
-                    cmd.Parameters.AddWithValue("@d",   дата);
-                    cmd.Parameters.AddWithValue("@st",  статус);
+                    cmd.Parameters.AddWithValue("@p", idProdaji);
+                    cmd.Parameters.AddWithValue("@s", сумма);
+                    cmd.Parameters.AddWithValue("@d", дата);
                     cmd.ExecuteNonQuery();
                 }
-
-                // 5) Пересчёт статуса самого счёта
-                ОбновитьСтатусСчета(conn, счетId);
+                // prodaja.oplacheno пересчитается триггером
             }
         }
 
@@ -93,89 +111,13 @@ namespace AccountingApp.Repositories
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
-
-                int счетId = 0;
                 using (var cmd = new NpgsqlCommand(
-                    @"SELECT ""СчетId"" FROM ""Оплаты"" WHERE id = @id", conn))
-                {
-                    cmd.Parameters.AddWithValue("@id", id);
-                    var obj = cmd.ExecuteScalar();
-                    if (obj != null && obj != DBNull.Value)
-                        счетId = Convert.ToInt32(obj);
-                }
-
-                using (var cmd = new NpgsqlCommand(
-                    @"DELETE FROM ""Оплаты"" WHERE id = @id", conn))
+                    @"DELETE FROM ""oplata"" WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("@id", id);
                     cmd.ExecuteNonQuery();
                 }
-
-                if (счетId > 0)
-                    ОбновитьСтатусСчета(conn, счетId);
-            }
-        }
-
-        // ==== вспомогательные методы ====
-
-        private static void ПолучитьСчет(NpgsqlConnection conn, int счетId,
-                                         out decimal сумма, out DateTime дата)
-        {
-            сумма = 0m;
-            дата  = DateTime.Today;
-
-            using (var cmd = new NpgsqlCommand(
-                @"SELECT ""Сумма"", ""Дата"" FROM ""Счета"" WHERE id = @id", conn))
-            {
-                cmd.Parameters.AddWithValue("@id", счетId);
-                using (var rd = cmd.ExecuteReader())
-                {
-                    if (rd.Read())
-                    {
-                        сумма = rd.GetDecimal(0);
-                        дата  = rd.GetDateTime(1);
-                    }
-                }
-            }
-        }
-
-        private static decimal ПолучитьСуммуОплат(NpgsqlConnection conn, int счетId)
-        {
-            using (var cmd = new NpgsqlCommand(
-                @"SELECT COALESCE(SUM(""Сумма""), 0) FROM ""Оплаты"" WHERE ""СчетId"" = @id", conn))
-            {
-                cmd.Parameters.AddWithValue("@id", счетId);
-                var obj = cmd.ExecuteScalar();
-                return (obj == null || obj == DBNull.Value) ? 0m : Convert.ToDecimal(obj);
-            }
-        }
-
-        private static void ОбновитьСтатусСчета(NpgsqlConnection conn, int счетId)
-        {
-            decimal суммаСчета;
-            DateTime датаСчета;
-            ПолучитьСчет(conn, счетId, out суммаСчета, out датаСчета);
-
-            decimal оплачено = ПолучитьСуммуОплат(conn, счетId);
-
-            string статус;
-            if (суммаСчета > 0 && оплачено >= суммаСчета)
-                статус = "Оплачен";
-            else if (оплачено > 0 && (DateTime.Today - датаСчета).TotalDays > 20)
-                статус = "Просрочен";
-            else if (оплачено > 0)
-                статус = "Частично";
-            else if ((DateTime.Today - датаСчета).TotalDays > 20)
-                статус = "Просрочен";
-            else
-                статус = "Черновик";
-
-            using (var cmd = new NpgsqlCommand(
-                @"UPDATE ""Счета"" SET ""Статус"" = @st WHERE id = @id", conn))
-            {
-                cmd.Parameters.AddWithValue("@st", статус);
-                cmd.Parameters.AddWithValue("@id", счетId);
-                cmd.ExecuteNonQuery();
+                // prodaja.oplacheno пересчитается триггером
             }
         }
     }

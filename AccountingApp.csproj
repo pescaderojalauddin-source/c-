@@ -104,6 +104,12 @@
     <Compile Include="FormОплаты.Designer.cs">
       <DependentUpon>FormОплаты.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormОплатыКлиента.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormОплатыКлиента.Designer.cs">
+      <DependentUpon>FormОплатыКлиента.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormОтчёты.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -142,12 +148,14 @@
     </Compile>
     <Compile Include="Models\Отгрузка.cs" />
     <Compile Include="Models\Оплата.cs" />
+    <Compile Include="Models\Прода.cs" />
     <Compile Include="Models\Товар.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Клиент.cs" />
     <Compile Include="Repositories\КлиентыRepository.cs" />
     <Compile Include="Repositories\ОплатыRepository.cs" />
+    <Compile Include="Repositories\ПродажиRepository.cs" />
     <Compile Include="Repositories\ОтгрузкиRepository.cs" />
     <Compile Include="Repositories\СкладыRepository.cs" />
     <Compile Include="Repositories\ТоварыRepository.cs" />

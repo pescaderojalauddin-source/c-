@@ -26,6 +26,7 @@ namespace AccountingApp
             this.btnОтгрузки  = new System.Windows.Forms.Button();
             this.btnОплаты    = new System.Windows.Forms.Button();
             this.btnОтчёты    = new System.Windows.Forms.Button();
+            this.btnОплатыКлиента = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvКлиенты)).BeginInit();
             this.SuspendLayout();
 
@@ -81,9 +82,20 @@ namespace AccountingApp
             this.btnОбновить.Text = "Обновить";
             this.btnОбновить.UseVisualStyleBackColor = true;
 
+            // btnОплатыКлиента (ОПЛАТЫ КЛИЕНТА — новая кнопка)
+            this.btnОплатыКлиента.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnОплатыКлиента.Location = new System.Drawing.Point(514, 553);
+            this.btnОплатыКлиента.Margin = new System.Windows.Forms.Padding(4);
+            this.btnОплатыКлиента.Name = "btnОплатыКлиента";
+            this.btnОплатыКлиента.Size = new System.Drawing.Size(120, 37);
+            this.btnОплатыКлиента.TabIndex = 11;
+            this.btnОплатыКлиента.Text = "Оплаты клиента";
+            this.btnОплатыКлиента.UseVisualStyleBackColor = true;
+            this.btnОплатыКлиента.BackColor = System.Drawing.Color.LightSkyBlue;
+
             // btnОтчёты
             this.btnОтчёты.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnОтчёты.Location = new System.Drawing.Point(514, 553);
+            this.btnОтчёты.Location = new System.Drawing.Point(644, 553);
             this.btnОтчёты.Margin = new System.Windows.Forms.Padding(4);
             this.btnОтчёты.Name = "btnОтчёты";
             this.btnОтчёты.Size = new System.Drawing.Size(110, 37);
@@ -94,7 +106,7 @@ namespace AccountingApp
 
             // btnОплаты
             this.btnОплаты.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnОплаты.Location = new System.Drawing.Point(634, 553);
+            this.btnОплаты.Location = new System.Drawing.Point(764, 553);
             this.btnОплаты.Margin = new System.Windows.Forms.Padding(4);
             this.btnОплаты.Name = "btnОплаты";
             this.btnОплаты.Size = new System.Drawing.Size(110, 37);
@@ -105,7 +117,7 @@ namespace AccountingApp
 
             // btnОтгрузки
             this.btnОтгрузки.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnОтгрузки.Location = new System.Drawing.Point(754, 553);
+            this.btnОтгрузки.Location = new System.Drawing.Point(884, 553);
             this.btnОтгрузки.Margin = new System.Windows.Forms.Padding(4);
             this.btnОтгрузки.Name = "btnОтгрузки";
             this.btnОтгрузки.Size = new System.Drawing.Size(110, 37);
@@ -116,7 +128,7 @@ namespace AccountingApp
 
             // btnСклады
             this.btnСклады.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnСклады.Location = new System.Drawing.Point(874, 553);
+            this.btnСклады.Location = new System.Drawing.Point(1004, 553);
             this.btnСклады.Margin = new System.Windows.Forms.Padding(4);
             this.btnСклады.Name = "btnСклады";
             this.btnСклады.Size = new System.Drawing.Size(110, 37);
@@ -127,7 +139,7 @@ namespace AccountingApp
 
             // btnСчета
             this.btnСчета.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnСчета.Location = new System.Drawing.Point(994, 553);
+            this.btnСчета.Location = new System.Drawing.Point(1124, 553);
             this.btnСчета.Margin = new System.Windows.Forms.Padding(4);
             this.btnСчета.Name = "btnСчета";
             this.btnСчета.Size = new System.Drawing.Size(110, 37);
@@ -138,7 +150,7 @@ namespace AccountingApp
 
             // btnТовары
             this.btnТовары.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnТовары.Location = new System.Drawing.Point(1114, 553);
+            this.btnТовары.Location = new System.Drawing.Point(1244, 553);
             this.btnТовары.Margin = new System.Windows.Forms.Padding(4);
             this.btnТовары.Name = "btnТовары";
             this.btnТовары.Size = new System.Drawing.Size(110, 37);
@@ -150,13 +162,14 @@ namespace AccountingApp
             // Form1
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1240, 600);
+            this.ClientSize = new System.Drawing.Size(1370, 600);
             this.Controls.Add(this.btnТовары);
             this.Controls.Add(this.btnСчета);
             this.Controls.Add(this.btnСклады);
             this.Controls.Add(this.btnОтгрузки);
             this.Controls.Add(this.btnОплаты);
             this.Controls.Add(this.btnОтчёты);
+            this.Controls.Add(this.btnОплатыКлиента);
             this.Controls.Add(this.btnОбновить);
             this.Controls.Add(this.btnУдалить);
             this.Controls.Add(this.btnИзменить);
@@ -179,6 +192,7 @@ namespace AccountingApp
             this.btnОтгрузки.Click   += new System.EventHandler(this.btnОтгрузки_Click);
             this.btnОплаты.Click     += new System.EventHandler(this.btnОплаты_Click);
             this.btnОтчёты.Click     += new System.EventHandler(this.btnОтчёты_Click);
+            this.btnОплатыКлиента.Click += new System.EventHandler(this.btnОплатыКлиента_Click);
 
             this.ResumeLayout(false);
         }
@@ -194,5 +208,6 @@ namespace AccountingApp
         private System.Windows.Forms.Button btnОтгрузки;
         private System.Windows.Forms.Button btnОплаты;
         private System.Windows.Forms.Button btnОтчёты;
+        private System.Windows.Forms.Button btnОплатыКлиента;
     }
 }
